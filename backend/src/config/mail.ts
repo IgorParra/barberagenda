@@ -14,8 +14,8 @@ export default {
 
   defaults: {
     from: {
-      email: 'seu@email.com',
-      name: 'Seu Nome',
+      email: 'suporte@luhanalvesbarber.com.br',
+      name: 'Equipe Luhan Alves Barber',
     },
   },
 } as IMailConfig;

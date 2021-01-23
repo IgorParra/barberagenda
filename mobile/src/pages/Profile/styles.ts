@@ -14,10 +14,17 @@ export const Title = styled.Text`
   margin: 24px 0;
 `;
 
+export const UserAvatarButton = styled.TouchableOpacity``;
+
 export const Avatar = styled.Image`
   width: 186px;
   height: 186px;
   border-radius: 98px;
-  margin-top: 64px;
+  margin-top: 20px;
+  margin-bottom: 20px;
   align-self: center;
+`;
+
+export const BackButton = styled.TouchableOpacity`
+  margin-top: 50px;
 `;

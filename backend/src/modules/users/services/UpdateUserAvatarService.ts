@@ -1,6 +1,9 @@
 import { injectable, inject } from 'tsyringe';
+import path from 'path';
+import fs from 'fs';
 
 import AppError from '@shared/errors/AppError';
+import uploadConfig from '@config/upload';
 
 import IStorageProvider from '@shared/container/providers/StorageProvider/models/IStorageProvider';
 import User from '../infra/typeorm/entities/User';
@@ -29,7 +32,10 @@ class UpdateUserAvatarService {
     }
 
     if (user.avatar) {
-      const userAvatarFilePath = path.join(uploadConfig.directory, user.avatar);
+      const userAvatarFilePath = path.join(
+        uploadConfig.uploadsFolder,
+        user.avatar,
+      );
 
       try {
         await fs.promises.stat(userAvatarFilePath);
@@ -42,7 +48,6 @@ class UpdateUserAvatarService {
     const fileName = await this.storageProvider.saveFile(avatarFilename);
 
     user.avatar = fileName;
-
     await this.usersRepository.save(user);
 
     return user;

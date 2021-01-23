@@ -1,17 +1,20 @@
 import React, { useRef, useCallback } from 'react';
+import Icon from 'react-native-vector-icons/Feather';
+
 import {
   View,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
   TextInput,
+  PermissionsAndroid,
   Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Form } from '@unform/mobile';
 import { FormHandles } from '@unform/core';
 import * as Yup from 'yup';
-
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { useAuth } from '../../hooks/auth';
 import api from '../../services/api';
 
@@ -20,16 +23,24 @@ import getValidationErrors from '../../utils/getValidationErrors';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 
-import { Container, Title, Avatar } from './styles';
+import {
+  Container,
+  BackButton,
+  Title,
+  UserAvatarButton,
+  Avatar,
+} from './styles';
 
 interface ProfileFormData {
   name: string;
   email: string;
   password: string;
+  old_password: string;
+  password_confirmation: string;
 }
 
 const Profile: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const formRef = useRef<FormHandles>(null);
   const navigation = useNavigation();
 
@@ -66,12 +77,36 @@ const Profile: React.FC = () => {
         abortEarly: false,
       });
 
-      console.log(data);
+      const {
+        name,
+        email,
+        old_password,
+        password,
+        password_confirmation,
+      } = data;
+
+      const formData = {
+        name,
+        email,
+        ...(old_password
+          ? {
+              old_password,
+              password,
+              password_confirmation,
+            }
+          : {}),
+      };
+
+      const response = await api.put('/profile', formData);
+
+      updateUser(response.data);
 
       Alert.alert(
         'Perfil atualizado com sucesso!',
         'As informações do perfil foram atualizadas.',
       );
+
+      navigation.goBack();
     } catch (err) {
       if (err instanceof Yup.ValidationError) {
         const errors = getValidationErrors(err);
@@ -88,6 +123,87 @@ const Profile: React.FC = () => {
     }
   }, []);
 
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, []);
+
+  const requestCameraPermission = async () => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'Cool Photo App Camera Permission',
+          message:
+            'Cool Photo App needs access to your camera ' +
+            'so you can take awesome pictures.',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        },
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('You can use the camera');
+      } else {
+        console.log('Camera permission denied');
+      }
+    } catch (err) {
+      console.warn(err);
+    }
+  };
+
+  const requestFilesPermission = async () => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        {
+          title: 'Cool Photo App Camera Permission',
+          message:
+            'Cool Photo App needs access to your camera ' +
+            'so you can take awesome pictures.',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        },
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('You can use the camera');
+      } else {
+        console.log('Camera permission denied');
+      }
+    } catch (err) {
+      console.warn(err);
+    }
+  };
+
+  const handleUpdateAvatar = useCallback(() => {
+    launchImageLibrary(
+      {
+        mediaType: 'photo',
+      },
+      (response) => {
+        if (response.didCancel) {
+          return;
+        }
+
+        if (response.errorCode) {
+          Alert.alert('Error while updating your avatar');
+          return;
+        }
+
+        const data = new FormData();
+
+        data.append('avatar', {
+          type: 'image/jpeg',
+          name: `${user.id}.jpg`,
+          uri: response.uri,
+        });
+
+        api.patch('users/avatar', data).then((apiResponse) => {
+          updateUser(apiResponse.data);
+        });
+      },
+    );
+  }, [updateUser, user.id]);
   return (
     <>
       <KeyboardAvoidingView
@@ -96,12 +212,18 @@ const Profile: React.FC = () => {
         enabled
       >
         <ScrollView
-           contentContainerStyle={
+          contentContainerStyle={
             Platform.OS === 'ios' ? { flex: 1 } : undefined
           }
         >
           <Container>
-            <Avatar source={{ uri: user.avatar_url }} />
+            <BackButton onPress={handleGoBack}>
+              <Icon name="chevron-left" size={24} color="#999591" />
+            </BackButton>
+
+            <UserAvatarButton onPress={() => handleUpdateAvatar()}>
+              <Avatar source={{ uri: user.avatar_url }} />
+            </UserAvatarButton>
 
             <View>
               <Title>Atualizar perfil</Title>
