@@ -17,7 +17,11 @@ jobs:
         uses: actions/setup-node@v2.1.4
         with:
           node-version: 12.x
-            
+      
+      # Entrar      
+      - name : Enter to "backend" file
+        run : cd backend
+      
       # Instalar as dependências NPM/Yarn
       - name: Install dependencies 
         run: yarn 
