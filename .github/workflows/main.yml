@@ -25,6 +25,10 @@ jobs:
       # Instalar as dependências NPM/Yarn
       - name: Install dependencies 
         run: yarn 
+        
+        # Entrar na pasta backend
+      - name : Enter to "backend" file
+        run : cd backend
           
       # Executar a build   
       - name: Run build
