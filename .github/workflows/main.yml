@@ -28,7 +28,7 @@ jobs:
           
       # Executar a build   
       - name: Run build
-        run: cd /backend && yarn build
+        run: cd backend && yarn build
           
       # Copiar pasta dist para dentro da Digital Ocean
       - name: copy dist to Digital Ocean
