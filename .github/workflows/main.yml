@@ -22,7 +22,7 @@ jobs:
       
       # Instalar as dependências NPM/Yarn
       - name: Install dependencies 
-        run: yarn 
+        run: cd backend && yarn 
         
 
           
